@@ -1,4 +1,7 @@
 from region import *
+from model import *
+from util import *
+from robot import *
 
 # Generates a WiFi grid with given size & source position, then runs
 # two robots (one directed by variance and the other random), then
@@ -6,47 +9,48 @@ from region import *
 # were.
 #
 # Parameters:
-#   samples: Number of points to move to. The total number of samples is `samples * stops`
 #   size: The size of the WiFi map.
 #   src_pos: The position of the WiFi emitter.
 #   uav_rows: Number of sample rows for each UAV
 #   radius: UGV move radius
 #   stops: Number of samples to take for each chosen point.
 #   display: Whether to display graphs and output guesses.
-def test(grid, samples, uav_rows, radius, stops, rand, armse_log, grmse_log, display):
-    model = Model(grid.size)
+def test(grid, samples, uav_rows, radius, rand, armse_log, grmse_log, display):
+    model = Model()
+    sample_total = 0
 
     if not rand:
-        uav = UAV(grid, model, uav_rows)
+        rgn = Region((0, 0, 0), grid.size)
+        uav = UAV(grid, rgn, model, 8, uav_rows)
         uav_disp = display
         if uav_disp is not False:
             uav_disp = True
-        uav.find_source(stops, rmse_log=armse_log, display=uav_disp)
+        sample_total += uav.find_source(rmse_log=armse_log, display=uav_disp)
         rgn = uav.suggest()
     else:
-        rgn = (0, 0), grid.size
+        rgn = Region((0, 0, 0), (grid.size[0], 0, grid.size[2]))
 
-    ugv = UGV(grid, model, rgn[0], radius, rgn, samples, rand)
-    ugv.find_source(stops, rmse_log=grmse_log, display=display)
+    ugv = UGV(grid, model, rgn.a, radius, rgn, samples, rand=rand)
+    sample_total += ugv.find_source(rmse_log=grmse_log, display=display)
 
     guess = ugv.guess()[0]
 
     error = rmse(grid, model)
-    return guess, error
+    return guess, error, sample_total
 
 
-def compare(size, src_amt, samples, uav_rows, radius, stops, use_rmse, display):
+def compare(size, src_amt, samples, uav_rows, radius, use_rmse, display):
     if use_rmse:
-        varmse, vgrmse, rarmse, rgrmse = [], [], [], []
+        varmse, vgrmse, rgrmse = [], [], []
     else:
-        varmse, vgrmse, rarmse, rgrmse = None, None, None, None
-    grid = Region().gen_wifi(size=size, src_amt=src_amt)
-    print(f"Real: {grid.pos}")
-    v_guess, v_rmse = test(grid, samples, uav_rows, radius, stops, False, varmse, vgrmse, display)
+        varmse, vgrmse, rgrmse = None, None, None
+    grid = Map(size=size, src_amt=src_amt)
+    print(f"Real: {grid.srcs}")
+    v_guess, v_rmse, v_samples = test(grid, samples, uav_rows, radius, False, varmse, vgrmse, display)
     print(f"    VGuess: {v_guess}")
-    r_guess, r_rmse = test(grid, samples + samples * uav_rows * (stops + 1), uav_rows, radius, stops, True, rarmse, rgrmse, False)
+    r_guess, r_rmse, r_samples = test(grid, v_samples, uav_rows, radius, True, None, rgrmse, False)
     print(f"    RGuess: {r_guess}")
-    return varmse, vgrmse, rarmse, rgrmse
+    return varmse, vgrmse, rgrmse
 
 
 def v_test(size, src_amt, samples, uav_rows, radius, stops, use_rmse, display):
@@ -54,7 +58,7 @@ def v_test(size, src_amt, samples, uav_rows, radius, stops, use_rmse, display):
         varmse, vgrmse = [], []
     else:
         varmse, vgrmse = None, None
-    grid = Region().gen_wifi(size=size, src_amt=src_amt)
+    grid = Map(src_amt=src_amt)
     print(f"Real: {grid.pos}")
     v_guess, v_rmse = test(grid, samples, uav_rows, radius, stops, False, varmse, vgrmse, display)
     print(f"    VGuess: {v_guess}, ARMSE: {varmse[len(varmse) - 1]:.2f}, GRMSE: {vgrmse[len(vgrmse) - 1]:.2f}")
