@@ -3,12 +3,22 @@ import numpy as np
 from util import *
 
 class Map(object):
+    '''
+    A WiFi map.
+    '''
     def __init__(self,
         freq=2.4, power=20,
         trans_gain=0, recv_gain=0,
         size=(24, 24, 24), src_amt=1,
         shadow_dev=2, path_loss=3,
         ):
+        '''
+        Creates a new WiFi map.
+
+        Args:
+        * src_amt: Amount of signal sources.
+        * Everything else: Parameters for wifi signal strength equation.
+        '''
 
         self.srcs = []
         for i in range(src_amt):
@@ -27,6 +37,10 @@ class Map(object):
         self.size = size
 
     def sample(self, pos):
+        '''
+        Takes a sample from the grid. This is cached so that all samples at a given position
+        have the same error.
+        '''
         if pos in self.cache:
             return self.cache[pos]
         val = 0
@@ -40,11 +54,43 @@ class Map(object):
         self.cache[pos] = val
         return val
 
+    def sample_rgn(self, rgn):
+        '''
+        Runs self.sample() for every point in a Region.
+        '''
+        res = []
+        if rgn.b.y > 0:
+            for x in range(rgn.a.x, rgn.b.x):
+                res.append([])
+                xi = x - rgn.a.x
+                for y in range(rgn.a.y, rgn.b.y):
+                    res[xi].append([])
+                    yi = y - rgn.a.y
+                    for z in range(rgn.a.z, rgn.b.z):
+                        rgn[xi][yi].append(self.sample(Vector(x, y, z)))
+        else:
+            for x in range(rgn.a.x, rgn.b.x):
+                res.append([])
+                xi = x - rgn.a.x
+                for z in range(rgn.a.z, rgn.b.z):
+                    res[xi].append(self.sample(Vector(x, 0, z)))
+        return res
+
     def __getitem__(self, item):
         return self.sample(item)
 
 class Region(object):
+    '''
+    A rectangular region.
+    '''
     def __init__(self, a, b):
+        '''
+        Creates a new region.
+
+        Args:
+        * a: The first point in the rectangle.
+        * b: The second point in the rectangle.
+        '''
         if a is not Vector:
             a = Vector(a[0], a[1], a[2])
         if b is not Vector:
@@ -53,9 +99,10 @@ class Region(object):
         self.b = b
 
     def contains(self, p):
-        return self.a.x <= p[0] < self.b.x \
-        and self.a.y <= p[1] < self.b.y \
-        and self.a.z <= p[2] < self.b.z
+        '''
+        Whether the region contains p, which should be a Vector, a tuple of three numbers, or a list of three numbers.
+        '''
+        return self.a.x <= p[0] <= self.b.x and self.a.y <= p[1] <= self.b.y and self.a.z <= p[2] <= self.b.z
 
     @property
     def size(self):

@@ -2,6 +2,9 @@ import math
 import numpy as np
 
 class Vector(object):
+    '''
+    A 3D vector.
+    '''
     def __init__(self, x, y=None, z=None):
         if y is None or z is None:
             self.val = [x[0], x[1], x[2]]
@@ -82,8 +85,17 @@ class Vector(object):
 
 
 def rand_in_circle(pos, radius, y_radius=0):
+    '''
+    Returns a random point in a circle. Not implemented for
+    spheres.
+
+    Args:
+    * pos: Center of the circle.
+    * radius: Radius of the circle on the xz plane.
+    * y_radius: Radius of the circle on the yz plane. Not implemented.
+    '''
     a = np.random.random() * 2 * math.pi
-    r = radius * math.sqrt(np.random.random())
+    r = np.random.random() * radius
     if y_radius > 0:
         # unimplemented
         assert(False)
@@ -92,26 +104,23 @@ def rand_in_circle(pos, radius, y_radius=0):
     return Vector(r * math.cos(a), y, r * math.sin(a))
 
 
-def rand_point(size):
-    return Vector(np.random.randint(0, size[0]), np.random.randint(0, size[1]), np.random.randint(0, size[2]))
-
-
-def rmse(grid, model):
-    from region import Region
-    pred = model.predict(Region((0,0,0), grid.size))
-    acc = 0
-    num = 0
-    for x in range(grid.size[0]):
-        for y in range(grid.size[1]):
-            for z in range(grid.size[2]):
-                p = pred.mean[x][y][z][1]
-                o = grid[Vector(x, y, z)]
-                acc += (p - o)**2
-                num += 1
-    return math.sqrt(acc / num)
+def rand_point(rgn):
+    '''
+    Returns a random point in a region.
+    '''
+    x = np.random.random() * rgn.size.x - rgn.a.x
+    if rgn.a.y == rgn.b.y:
+        y = rgn.a.y
+    else:
+        y = np.random.random() * rgn.size.y - rgn.a.y
+    z = np.random.random() * rgn.size.z - rgn.a.z
+    return Vector(x, y, z)
 
 
 def std_dev(arr, mean):
+    '''
+    Gets the standard deviation of objects in a list, given the mean.
+    '''
     acc = 0
     for n in arr:
         acc += (n - mean)**2
