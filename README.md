@@ -20,3 +20,5 @@ You can pass arguments to this, and they can be listed, along with descriptions,
 `./sim.py -h`
 
 For example, `./sim.py --csv` will print a CSV log of RMSE values logged during the simulation.
+
+Warning: While 3D simulation was partially implemented, it wasn't completed. Unless you're testing the 3D simulation, please always set the Y value of -s to 0. Ex. `./sim.py -s 256 0 256`

@@ -34,7 +34,8 @@ class Robot(object):
 
     def guess(self):
         '''
-        Make a guess about where the WiFi source is.
+        Make a guess about where the WiFi source is. This doesn't actually work right now;
+        it's a holdover from an earlier version. It was easier to leave it in than to remove it.
         '''
         # I don't know what happens if you try to make a GP model
         # without any inputs, and I don't trust Python to give me
@@ -99,11 +100,11 @@ class Robot(object):
                 # Update destination, if applicable
                 self.update_dest()
             # Display a set of plots, if asked for
-            if display is not True and display > 1 and self.sample_amt % display == 0:
+            if display is not True and display > 0 and self.sample_amt % display == 0:
                 self.display(label=self.plt_lbl)
 
         # Display final plot
-        if display is True or display >= 1:
+        if display is True or display > 0:
             self.display(label=self.plt_lbl)
 
         return self.sample_amt
@@ -157,7 +158,7 @@ class UGV(Robot):
         if rand:
             lbl = "Random"
         else:
-            lbl = f"UGV, Rgn: {rgn}"
+            lbl = f"UGV"
         super(UGV, self).__init__(grid, model, pos, move_range, True, rmse_log_interval, plt_lbl=lbl)
         self.rgn = rgn
         self.rand = rand

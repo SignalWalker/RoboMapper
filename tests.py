@@ -19,7 +19,7 @@ def test(grid, samples, uav_rows, radius, rand, rmse_log_interval, display):
     * radius: Movement radius for the UGV.
     * rand: Whether to test the random destination selection method or the variance method.
     * rmse_log_interval: How many samples to take before logging RMSE. If 0, RMSE is not logged.
-    * display: Whether to display graphs.
+    * display: Interval between display of matplotlib graphs.
     '''
     model = Model(grid.size[1] > 0)
     sample_total = 0
@@ -57,9 +57,9 @@ def compare(size, src_amt, samples, uav_rows, radius, rmse_log_interval, display
     grid = Map(size=size, src_amt=src_amt)
     print(f"Real: {grid.srcs}")
     v_guess, v_rmse, v_samples = test(grid, samples, uav_rows, radius, False, rmse_log_interval, display)
-    print(f"    VGuess: {v_guess}")
+    # print(f"    VGuess: {v_guess}")
     r_guess, r_rmse, r_samples = test(grid, v_samples, uav_rows, radius, True, rmse_log_interval, display)
-    print(f"    RGuess: {r_guess}")
+    # print(f"    RGuess: {r_guess}")
     return v_rmse, r_rmse
 
 

@@ -26,7 +26,8 @@ def main():
     parser.add_argument("-r", type=int, default=8, dest="radius", help="UGV movement radius.")
     parser.add_argument("--rmse", type=int, default=0, dest="rmse", help="Interval between RMSE logs. 0 for none.")
     parser.add_argument("--csv", action="store_true", dest="csv", help="Generate CSV version of RMSE log instead of displaying graphs.")
-    parser.add_argument("--display", action="store_true", dest="display", help="Display matplotlib graphs. Does nothing if --csv is used.")
+    parser.add_argument("--display", type=int, dest="display", help="Interval between display of matplotlib graphs. 0 for none. Does nothing if --csv is active.")
+    parser.add_argument("--no_rand", action="store_true", dest="no_rand", help="Whether to skip testing of random robot. Does nothing if --csv is active.")
     parser.add_argument("--profile", action="store_true", dest="profile", help="Profile this program using cProfile.")
     args = parser.parse_args()
     start = time.time()
@@ -38,6 +39,11 @@ def main():
 
     if args.csv:
         print(tests.rmse_csv(args.size, args.src_amt, args.samples, args.uav_rows, args.radius))
+    elif args.no_rand:
+        grid = Map(size=args.size, src_amt=args.src_amt)
+        guess, rmse, samples = tests.test(grid, args.samples, args.uav_rows, args.radius, False, args.rmse, args.display)
+        print(f"RMSE: {rmse[-1]}")
+        print(f"Time: {time.time() - start}")
     else:
         v_err, r_err = tests.compare(args.size, args.src_amt, args.samples, args.uav_rows, args.radius, args.rmse, args.display)
         if args.rmse > 0:
